@@ -8,6 +8,7 @@ Requirements
 
 * Python 2.7.2 or similar
 * MySQL 5.5.24 and above
+* A MySQL user/database available for use
 * [mysql-connector-python](http://dev.mysql.com/downloads/connector/python/) : MySQL Connector/Python standardized database driver
 * [datasift-python](https://github.com/datasift/datasift-python) : Python client to interface with DataSift
 
