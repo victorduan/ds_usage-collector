@@ -2,6 +2,7 @@
 
 import sys
 import mysql.connector
+from mysql.connector.constants import ClientFlag
 import datasift
 
 class Env(object):
@@ -53,15 +54,26 @@ class MySqlHelper(object):
         return columns
     
     def connect(self):
-        self._cnx = mysql.connector.connect(user=self._username,  password=self._password, host=self._host, database=self._database)
+        flags = [ClientFlag.MULTI_STATEMENTS]
+        self._cnx = mysql.connector.connect(user=self._username,  password=self._password, host=self._host, database=self._database, client_flags=flags)
         return self._cnx
 
     def execute_query(self, query, data=''):
         self._cnx.autocommit = False
         
         self._cursor = self._cnx.cursor()
-        self._cursor.execute(query, data)
+        
+        if data:
+            self._cursor.execute(query, data)
+        else:
+            self._cursor.execute(query)
 
+    def execute_many(self, query):
+        self._cnx.autocommit = False
+        self._cursor = self._cnx.cursor()
+
+        return self._cursor.execute(query, multi=True)
+    
     def commit(self):
         self._cnx.commit()
         self._cursor.close()

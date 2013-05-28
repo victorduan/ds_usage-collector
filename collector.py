@@ -35,8 +35,6 @@ if __name__ == "__main__":
             logging.warning("Retries left: {0}".format(retry))
             time.sleep(2) # Sleep 2 seconds before retrying
     
-    user_list = config.users
-
     # Open a MySQL connection
     mysql.connect()
     
@@ -66,7 +64,7 @@ if __name__ == "__main__":
     unix_start  = calendar.timegm(start)
     unix_end    = calendar.timegm(end) 
 
-    insert_count= 0
+    insert_string = ''
     
     for stream in usage['streams']:
         if len(stream) == 32:
@@ -99,7 +97,7 @@ if __name__ == "__main__":
             insert_query = ("""
                             INSERT INTO {0} 
                             (`username`, `start`, `end`, `stream_type`, `stream_hash`, `seconds`, {1}) 
-                            VALUES (%(username)s, %(start)s, %(end)s, %(stream_type)s, %(stream_hash)s, %(seconds)s, {2})
+                            VALUES ('%(username)s', %(start)s, %(end)s, '%(stream_type)s', '%(stream_hash)s', %(seconds)s, {2});
                             """).format(table_name, fields_string, values_string)
 
         # Different MySQL Query if there is no license consumption
@@ -107,27 +105,24 @@ if __name__ == "__main__":
             insert_query = ("""
                             INSERT INTO {0} 
                             (`username`, `start`, `end`, `stream_type`, `stream_hash`, `seconds`) 
-                            VALUES (%(username)s, %(start)s, %(end)s, %(stream_type)s, %(stream_hash)s, %(seconds)s)
+                            VALUES ('%(username)s', %(start)s, %(end)s, '%(stream_type)s', '%(stream_hash)s', %(seconds)s);
                             """).format(table_name)
-
-        retry = 3
-        while retry:
-            query = " ".join(insert_query.split())
-            try:
-                mysql.execute_query(query, data)
-                logging.debug("Attempting to insert: {0} into database".format(data))
-                retry = 0
-                insert_count += 1
-            except Exception, err:
-                logging.exception("Error inserting into MySQL: {0}".format(query))
-                retry -= 1
-                logging.debug("Query: {0}; Data Dump: {1}".format(query, data))
-                logging.debug("Retries left: {0}".format(retry))
-                time.sleep(2) # Sleep for 2 seconds before retrying
-                
-    # Commit the inserts for the user (if there are results)
-    if insert_count: mysql.commit()
-    else:            mysql.close()
+        
+        # Concatenate all the INSERT statements    
+        insert_string += " ".join(insert_query.split()) % data
     
+    try:
+        insert_count= 0 
+        cursor = mysql.execute_many(insert_string)
+        for insert in cursor:
+            insert_count += 1
+            
+        # Commit the inserts for the user (if there are results)
+        if insert_count: mysql.commit()
+        else:            mysql.close()
+    except Exception, err:
+        logging.exception(err)
+        sys.exit()
+        
     logging.info("Tasks completed.")
 
