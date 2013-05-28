@@ -21,5 +21,6 @@ Usage
 Changelog
 ---------
 
+* v.0.2.0 - Performance enhancements; Reduced the time for multiple inserts into MySQL (2013-05-28)
 * v.0.1.0 - Initial version (2013-05-20)
 
