@@ -39,8 +39,9 @@ CREATE TABLE `usage_reporting` (
   `video` int(10) unsigned DEFAULT '0',
   `wordpress.blog` int(10) unsigned DEFAULT '0',
   `wordpress.comment` int(10) unsigned DEFAULT '0',
+  `wikipedia` int(10) unsigned DEFAULT '0',
   PRIMARY KEY (`intID`),
   KEY `username` (`username`),
   KEY `stream_type` (`stream_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1$$
+) ENGINE=InnoDB AUTO_INCREMENT=11719 DEFAULT CHARSET=latin1$$
 

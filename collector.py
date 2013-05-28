@@ -66,63 +66,70 @@ if __name__ == "__main__":
 
     insert_string = ''
     
-    for stream in usage['streams']:
-        if len(stream) == 32:
-            stream_type = "stream"
-        else:
-            stream_type = "historic"
-
-        seconds = usage['streams'][stream]['seconds']
-
-        data = {
-            'username'       : username,
-            'start'          : unix_start,
-            'end'            : unix_end,
-            'stream_type'    : stream_type,
-            'stream_hash'    : str(stream),
-            'seconds'        : seconds
-        }
-
-        licenses = usage['streams'][stream]['licenses']
-
-        if len(licenses):
-            for license_type, license_value in licenses.items():
-                # Only add licenses for columns that exist in the database
-                if any(str(license_type) in x for x in valid_sources):
-                    data[str(license_type)] = license_value
-
-            fields_string = ", ".join([ "`{0}`".format(k) for k in licenses.keys() ])
-            values_string = ", ".join([ "%({0})s".format(k) for k in licenses.keys() ])
-
-            insert_query = ("""
-                            INSERT INTO {0} 
-                            (`username`, `start`, `end`, `stream_type`, `stream_hash`, `seconds`, {1}) 
-                            VALUES ('%(username)s', %(start)s, %(end)s, '%(stream_type)s', '%(stream_hash)s', %(seconds)s, {2});
-                            """).format(table_name, fields_string, values_string)
-
-        # Different MySQL Query if there is no license consumption
-        else:
-            insert_query = ("""
-                            INSERT INTO {0} 
-                            (`username`, `start`, `end`, `stream_type`, `stream_hash`, `seconds`) 
-                            VALUES ('%(username)s', %(start)s, %(end)s, '%(stream_type)s', '%(stream_hash)s', %(seconds)s);
-                            """).format(table_name)
-        
-        # Concatenate all the INSERT statements    
-        insert_string += " ".join(insert_query.split()) % data
+    if len(usage['streams']):
     
-    try:
-        insert_count= 0 
-        cursor = mysql.execute_many(insert_string)
-        for insert in cursor:
-            insert_count += 1
+        for stream in usage['streams']:
+            if len(stream) == 32:
+                stream_type = "stream"
+            else:
+                stream_type = "historic"
+    
+            seconds = usage['streams'][stream]['seconds']
+    
+            data = {
+                'username'       : username,
+                'start'          : unix_start,
+                'end'            : unix_end,
+                'stream_type'    : stream_type,
+                'stream_hash'    : str(stream),
+                'seconds'        : seconds
+            }
+    
+            licenses = usage['streams'][stream]['licenses']
+    
+            if len(licenses):
+                headers = []
+                for license_type, license_value in licenses.items():
+                    # Only add licenses for columns that exist in the database
+                    if any(str(license_type) in x for x in valid_sources):
+                        data[str(license_type)] = license_value
+                        headers.append(str(license_type))
+    
+                fields_string = ", ".join([ "`{0}`".format(k) for k in headers ])
+                values_string = ", ".join([ "%({0})s".format(k) for k in headers ])
+    
+                insert_query = ("""
+                                INSERT INTO {0} 
+                                (`username`, `start`, `end`, `stream_type`, `stream_hash`, `seconds`, {1}) 
+                                VALUES ('%(username)s', %(start)s, %(end)s, '%(stream_type)s', '%(stream_hash)s', %(seconds)s, {2});
+                                """).format(table_name, fields_string, values_string)
+    
+            # Different MySQL Query if there is no license consumption
+            else:
+                insert_query = ("""
+                                INSERT INTO {0} 
+                                (`username`, `start`, `end`, `stream_type`, `stream_hash`, `seconds`) 
+                                VALUES ('%(username)s', %(start)s, %(end)s, '%(stream_type)s', '%(stream_hash)s', %(seconds)s);
+                                """).format(table_name)
             
-        # Commit the inserts for the user (if there are results)
-        if insert_count: mysql.commit()
-        else:            mysql.close()
-    except Exception, err:
-        logging.exception(err)
-        sys.exit()
+            # Concatenate all the INSERT statements 
+            insert_string += " ".join(insert_query.split()) % data
+        
+        try:
+            insert_count= 0 
+            cursor = mysql.execute_many(insert_string)
+            for insert in cursor:
+                insert_count += 1
+                
+            # Commit the inserts for the user (if there are results)
+            if insert_count: mysql.commit()
+            else:            mysql.close()
+        except Exception, err:
+            logging.exception(err)
+            sys.exit()
+            
+    else:
+        logging.info("No streams consumed in the period: {0} for user: {1}".format(config.usage_interval, username))    
         
     logging.info("Tasks completed.")
 
