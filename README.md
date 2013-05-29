@@ -19,6 +19,13 @@ Usage
 * Create a table with the provided script: `mysql db_name -u user -p < table_creation.sql`
 * Run the collector.py script: `python collector.py datasift_username datasift_api_key`
 
+License
+-------
+
+All code contained in this repository is Copyright 2011-2013 MediaSift Ltd.
+
+This code is released under the BSD license. Please see the LICENSE file for more details.
+
 Changelog
 ---------
 
