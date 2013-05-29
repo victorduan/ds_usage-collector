@@ -33,7 +33,7 @@ if __name__ == "__main__":
             logging.exception(err)
             retry -= 1
             logging.warning("Retries left: {0}".format(retry))
-            time.sleep(2) # Sleep 2 seconds before retrying
+            time.sleep(5) # Sleep 5 seconds before retrying
     
     # Open a MySQL connection
     mysql.connect()
@@ -43,18 +43,29 @@ if __name__ == "__main__":
     
     username = sys.argv[1]
 
-    retry = 3
+    retry = 12
     while retry:
         try:
-            usage = env.get_user().get_usage(config.usage_interval)
+            usage = env.get_usage(config.usage_interval)
             logging.info("Getting /usage for user: {0}".format(username))
             print "Getting /usage for user: {0}".format(username)
-            retry = 0
+            break
         except Exception, err:
             logging.exception("Encountered getting /usage for user: {0}. Error message: {1}".format(username, err))
+            
+            if err[1] == 403:
+                logging.info("Exceeded DataSift API Rate Limit. Sleeping for 5 minutes before next retry")
+                time.sleep(300)
+            else:
+                logging.info("Unable to get usage from DataSift. Sleeping for 15 seconds before next retry")
+                time.sleep(15) # Sleep 15 seconds before retrying
+            
             retry -= 1
-            logging.warning("Retries left: {0}".format(retry))
-            time.sleep(5) # Sleep 5 seconds before retrying
+            logging.info("Retries left: {0}".format(retry))            
+            
+            if retry == 0:
+                logging.error("Unable to get usage from DataSift. Exiting after all retries")
+                sys.exit()
 
 
     date_format = "%a, %d %b %Y %H:%M:%S +0000"

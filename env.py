@@ -22,7 +22,9 @@ class Env(object):
     def get_user(self):
         return self._user
     
-
+    def get_usage(self, interval='day'):
+        return self._user.get_usage(interval)
+    
 class MySqlHelper(object):
 
     _username     = ""
