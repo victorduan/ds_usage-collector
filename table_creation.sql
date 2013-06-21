@@ -18,6 +18,7 @@ CREATE TABLE `usage_reporting` (
   `trends` int(10) unsigned DEFAULT '0',
   `2ch` int(10) unsigned DEFAULT '0',
   `amazon` int(10) unsigned DEFAULT '0',
+  `bitly` int(10) unsigned DEFAULT '0',
   `bitly_trial` int(10) unsigned DEFAULT '0',
   `blog` int(10) unsigned DEFAULT '0',
   `board` int(10) unsigned DEFAULT '0',
@@ -43,5 +44,5 @@ CREATE TABLE `usage_reporting` (
   PRIMARY KEY (`intID`),
   KEY `username` (`username`),
   KEY `stream_type` (`stream_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=11719 DEFAULT CHARSET=latin1$$
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1$$
 
